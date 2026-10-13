@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicios Interactivos - Contador Auditor UTEM</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax para LaTeX -->
+    
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #003876 0%, #00509E 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #003876 0%, #FF6600 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .exercise-card {
+            border-left: 4px solid #FF6600;
+        }
+        
+        .solution-hidden {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .solution-visible {
+            max-height: 2000px;
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-correct {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left: 4px solid #10b981;
+        }
+        
+        .feedback-incorrect {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 4px solid #ef4444;
+        }
+        
+        .feedback-info {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 4px solid #3b82f6;
+        }
+        
+        input[type="number"], input[type="text"] {
+            transition: all 0.2s ease;
+        }
+        
+        input[type="number"]:focus, input[type="text"]:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #FF6600;
+            border-color: #FF6600;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #e5e7eb;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #003876 0%, #FF6600 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-regression { background-color: #dbeafe; color: #1e40af; }
+        .badge-probability { background-color: #fef3c7; color: #92400e; }
+        
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+<div class="no-print" style="background:#082f63;color:white;padding:12px 20px;text-align:center;position:relative;z-index:60;font-family:Arial,sans-serif"><a href="index.html" style="color:white;margin:0 14px;text-decoration:underline">Inicio</a><a href="probabilidades-2.html" style="color:white;margin:0 14px;text-decoration:underline">Contenidos de probabilidad</a><a href="ejercicios.html" style="color:white;margin:0 14px;text-decoration:underline">Ejercicios interactivos</a></div>
+    <!-- Progress Bar -->
+    <div class="progress-bar no-print">
+        <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+    
+    <!-- Header -->
+    <header class="gradient-bg text-white py-12 px-4 sticky top-0 z-50 shadow-lg no-print">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-4xl md:text-5xl font-bold mb-3">Ejercicios Interactivos</h1>
+            <p class="text-xl md:text-2xl text-orange-100">Carrera de Contador Auditor</p>
+            <p class="text-sm text-blue-200 mt-2">Universidad Tecnológica Metropolitana</p>
+        </div>
+    </header>
+    
+    <!-- Stats Bar -->
+    <div class="bg-white shadow-md py-4 px-4 no-print">
+        <div class="max-w-6xl mx-auto flex flex-wrap gap-6 justify-center items-center">
+            <div class="text-center">
+                <p class="text-2xl font-bold text-[#003876]" id="correctCount">0</p>
+                <p class="text-sm text-gray-600">Correctas</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-[#FF6600]" id="totalAttempts">0</p>
+                <p class="text-sm text-gray-600">Intentos</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-green-600" id="percentageCorrect">0%</p>
+                <p class="text-sm text-gray-600">Porcentaje</p>
+            </div>
+            <button onclick="resetStats()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-semibold transition">
+                Reiniciar Estadísticas
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        
+        <!-- Instrucciones -->
+        <section class="mb-12">
+            <div class="card bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-3xl font-bold gradient-text mb-6">Instrucciones</h2>
+                <div class="space-y-4 text-gray-700">
+                    <p class="text-lg">Bienvenido al módulo de ejercicios interactivos. Aquí podrás practicar los conceptos de:</p>
+                    <ul class="ml-6 space-y-2">
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-[#FF6600] mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong>Regresión Lineal Simple:</strong> Interpretación de coeficientes, predicciones, análisis de residuos</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-[#FF6600] mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong>Probabilidades:</strong> Cálculo de probabilidades, propiedades, Teorema de Bayes</span>
+                        </li>
+                    </ul>
+                    <div class="mt-6 p-4 bg-blue-50 rounded-lg border-l-4 border-[#003876]">
+                        <p class="font-semibold text-gray-800 mb-2">Cómo usar:</p>
+                        <ol class="ml-4 list-decimal space-y-1 text-gray-700">
+                            <li>Lee cuidadosamente cada ejercicio</li>
+                            <li>Ingresa tu respuesta en el campo correspondiente</li>
+                            <li>Haz clic en "Verificar Respuesta"</li>
+                            <li>Si necesitas ayuda, usa el botón "Ver Solución"</li>
+                            <li>Las respuestas numéricas deben ingresarse con 2 decimales (usa punto o coma)</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- REGRESIÓN LINEAL -->
+        <h2 class="text-3xl font-bold gradient-text mb-6">Regresión Lineal Simple</h2>
+        
+        <!-- Ejercicio RL 1 -->
+        <section class="mb-8">
+            <div class="card bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="exercise-card bg-gradient-to-r from-blue-50 to-white p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Ejercicio 1: Interpretación de la pendiente</h3>
+                        <span class="badge badge-regression">Regresión</span>
+                    </div>
+                    <div class="text-gray-700 space-y-4">
+                        <p>Una auditoría analiza la relación entre el número de transacciones mensuales (\(X\), en miles) y las horas de auditoría requeridas (\(Y\)). El modelo estimado es:</p>
+                        <div class="bg-white p-4 rounded-lg text-center text-lg">
+                            \[\hat{Y} = 25 + 3{,}5X\]
+                        </div>
+                        <p class="font-semibold">Pregunta: ¿Cuántas horas adicionales se requieren por cada 1.000 transacciones adicionales?</p>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex gap-3 items-center mb-4">
+                        <input type="number" step="0.01" id="answer-rl1" placeholder="Tu respuesta" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#FF6600]">
+                        <span class="text-gray-600">horas</span>
+                        <button onclick="checkAnswer('rl1', 3.5)" class="px-6 py-3 bg-[#FF6600] hover:bg-[#E55A00] text-white font-semibold rounded-lg transition">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="feedback-rl1"></div>
+                    
+                    <button onclick="toggleSolution('sol-rl1')" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition">
+                        Ver Solución Completa
+                    </button>
+                    <div id="sol-rl1" class="solution-hidden mt-4 p-4 bg-blue-50 rounded-lg">
+                        <p class="font-semibold text-gray-800 mb-2">Solución:</p>
+                        <p class="text-gray-700">La pendiente \(b_1 = 3{,}5\) indica que por cada 1.000 transacciones adicionales, se requieren <strong>3,5 horas</strong> adicionales de auditoría.</p>
+                        <p class="text-gray-700 mt-2">Interpretación: El coeficiente de la variable independiente (pendiente) representa el cambio en Y por cada unidad de cambio en X.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Ejercicio RL 2 -->
+        <section class="mb-8">
+            <div class="card bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="exercise-card bg-gradient-to-r from-blue-50 to-white p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Ejercicio 2: Predicción</h3>
+                        <span class="badge badge-regression">Regresión</span>
+                    </div>
+                    <div class="text-gray-700 space-y-4">
+                        <p>El costo de mantenimiento de equipos de oficina (\(Y\), millones de pesos) se relaciona con las horas de uso mensual (\(X\)) mediante:</p>
+                        <div class="bg-white p-4 rounded-lg text-center text-lg">
+                            \[\hat{Y} = 1{,}8 + 0{,}045X\]
+                        </div>
+                        <p class="font-semibold">Pregunta: Estime el costo de mantenimiento para un mes con 120 horas de uso.</p>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex gap-3 items-center mb-4">
+                        <input type="number" step="0.01" id="answer-rl2" placeholder="Tu respuesta" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#FF6600]">
+                        <span class="text-gray-600">millones</span>
+                        <button onclick="checkAnswer('rl2', 7.2)" class="px-6 py-3 bg-[#FF6600] hover:bg-[#E55A00] text-white font-semibold rounded-lg transition">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="feedback-rl2"></div>
+                    
+                    <button onclick="toggleSolution('sol-rl2')" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition">
+                        Ver Solución Completa
+                    </button>
+                    <div id="sol-rl2" class="solution-hidden mt-4 p-4 bg-blue-50 rounded-lg">
+                        <p class="font-semibold text-gray-800 mb-2">Solución:</p>
+                        <div class="bg-white p-3 rounded-lg my-2">
+                            \[\hat{Y} = 1{,}8 + 0{,}045(120) = 1{,}8 + 5{,}4 = 7{,}2 \text{ millones}\]
+                        </div>
+                        <p class="text-gray-700">El costo estimado de mantenimiento para 120 horas de uso es de <strong>7,2 millones de pesos</strong>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Ejercicio RL 3 -->
+        <section class="mb-8">
+            <div class="card bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="exercise-card bg-gradient-to-r from-blue-50 to-white p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Ejercicio 3: Cálculo de residuos</h3>
+                        <span class="badge badge-regression">Regresión</span>
+                    </div>
+                    <div class="text-gray-700 space-y-4">
+                        <p>Para el modelo \(\hat{Y} = 50 + 2{,}5X\), donde \(X\) son facturas procesadas (cientos) e \(Y\) es el costo (miles de pesos):</p>
+                        <p>En un mes se procesaron 40 cientos de facturas (X = 40) y el costo real fue Y = 165 mil pesos.</p>
+                        <p class="font-semibold">Pregunta: Calcule el residuo \(e = Y - \hat{Y}\).</p>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex gap-3 items-center mb-4">
+                        <input type="number" step="0.01" id="answer-rl3" placeholder="Tu respuesta" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#FF6600]">
+                        <span class="text-gray-600">miles</span>
+                        <button onclick="checkAnswer('rl3', 15)" class="px-6 py-3 bg-[#FF6600] hover:bg-[#E55A00] text-white font-semibold rounded-lg transition">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="feedback-rl3"></div>
+                    
+                    <button onclick="toggleSolution('sol-rl3')" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition">
+                        Ver Solución Completa
+                    </button>
+                    <div id="sol-rl3" class="solution-hidden mt-4 p-4 bg-blue-50 rounded-lg">
+                        <p class="font-semibold text-gray-800 mb-2">Solución:</p>
+                        <p class="text-gray-700 mb-2">Primero calculamos el valor estimado:</p>
+                        <div class="bg-white p-3 rounded-lg my-2">
+                            \[\hat{Y} = 50 + 2{,}5(40) = 50 + 100 = 150\]
+                        </div>
+                        <p class="text-gray-700 mb-2">Luego calculamos el residuo:</p>
+                        <div class="bg-white p-3 rounded-lg my-2">
+                            \[e = Y - \hat{Y} = 165 - 150 = 15\]
+                        </div>
+                        <p class="text-gray-700">El residuo es <strong>15 mil pesos</strong>. Al ser positivo, indica que el costo real fue mayor al estimado por el modelo.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- PROBABILIDADES -->
+        <h2 class="text-3xl font-bold gradient-text mb-6 mt-12">Probabilidades</h2>
+        
+        <!-- Ejercicio P 1 -->
+        <section class="mb-8">
+            <div class="card bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="exercise-card bg-gradient-to-r from-yellow-50 to-white p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Ejercicio 4: Probabilidad básica</h3>
+                        <span class="badge badge-probability">Probabilidad</span>
+                    </div>
+                    <div class="text-gray-700 space-y-4">
+                        <p>De un archivo de 250 facturas, 20 tienen errores de cálculo.</p>
+                        <p class="font-semibold">Pregunta: Si se selecciona una factura al azar, ¿cuál es la probabilidad de que tenga errores? (Exprese como decimal con 2 decimales)</p>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex gap-3 items-center mb-4">
+                        <input type="number" step="0.01" id="answer-p1" placeholder="Tu respuesta (ej: 0.08)" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#FF6600]">
+                        <button onclick="checkAnswer('p1', 0.08)" class="px-6 py-3 bg-[#FF6600] hover:bg-[#E55A00] text-white font-semibold rounded-lg transition">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="feedback-p1"></div>
+                    
+                    <button onclick="toggleSolution('sol-p1')" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition">
+                        Ver Solución Completa
+                    </button>
+                    <div id="sol-p1" class="solution-hidden mt-4 p-4 bg-yellow-50 rounded-lg">
+                        <p class="font-semibold text-gray-800 mb-2">Solución:</p>
+                        <div class="bg-white p-3 rounded-lg my-2">
+                            \[P(\text{error}) = \frac{\text{facturas con error}}{\text{total de facturas}} = \frac{20}{250} = 0{,}08 = 8\%\]
+                        </div>
+                        <p class="text-gray-700">La probabilidad es <strong>0,08 o 8%</strong>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Ejercicio P 2 -->
+        <section class="mb-8">
+            <div class="card bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="exercise-card bg-gradient-to-r from-yellow-50 to-white p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Ejercicio 5: Probabilidad del complemento</h3>
+                        <span class="badge badge-probability">Probabilidad</span>
+                    </div>
+                    <div class="text-gray-700 space-y-4">
+                        <p>La probabilidad de que una auditoría detecte errores materiales es 0,28.</p>
+                        <p class="font-semibold">Pregunta: ¿Cuál es la probabilidad de NO detectar errores materiales?</p>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex gap-3 items-center mb-4">
+                        <input type="number" step="0.01" id="answer-p2" placeholder="Tu respuesta" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#FF6600]">
+                        <button onclick="checkAnswer('p2', 0.72)" class="px-6 py-3 bg-[#FF6600] hover:bg-[#E55A00] text-white font-semibold rounded-lg transition">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="feedback-p2"></div>
+                    
+                    <button onclick="toggleSolution('sol-p2')" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition">
+                        Ver Solución Completa
+                    </button>
+                    <div id="sol-p2" class="solution-hidden mt-4 p-4 bg-yellow-50 rounded-lg">
+                        <p class="font-semibold text-gray-800 mb-2">Solución:</p>
+                        <p class="text-gray-700 mb-2">Usando la propiedad del complemento:</p>
+                        <div class="bg-white p-3 rounded-lg my-2">
+                            \[P(A^c) = 1 - P(A) = 1 - 0{,}28 = 0{,}72 = 72\%\]
+                        </div>
+                        <p class="text-gray-700">La probabilidad de NO detectar errores es <strong>0,72 o 72%</strong>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Ejercicio P 3 -->
+        <section class="mb-8">
+            <div class="card bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="exercise-card bg-gradient-to-r from-yellow-50 to-white p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Ejercicio 6: Regla de la adición</h3>
+                        <span class="badge badge-probability">Probabilidad</span>
+                    </div>
+                    <div class="text-gray-700 space-y-4">
+                        <p>En una empresa:</p>
+                        <ul class="ml-6 list-disc space-y-1">
+                            <li>40% de las transacciones son de compras: P(C) = 0,40</li>
+                            <li>30% son de ventas: P(V) = 0,30</li>
+                            <li>10% afectan ambas cuentas: P(C ∩ V) = 0,10</li>
+                        </ul>
+                        <p class="font-semibold">Pregunta: ¿Cuál es la probabilidad de que una transacción sea de compras O ventas?</p>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex gap-3 items-center mb-4">
+                        <input type="number" step="0.01" id="answer-p3" placeholder="Tu respuesta" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#FF6600]">
+                        <button onclick="checkAnswer('p3', 0.60)" class="px-6 py-3 bg-[#FF6600] hover:bg-[#E55A00] text-white font-semibold rounded-lg transition">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="feedback-p3"></div>
+                    
+                    <button onclick="toggleSolution('sol-p3')" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition">
+                        Ver Solución Completa
+                    </button>
+                    <div id="sol-p3" class="solution-hidden mt-4 p-4 bg-yellow-50 rounded-lg">
+                        <p class="font-semibold text-gray-800 mb-2">Solución:</p>
+                        <p class="text-gray-700 mb-2">Aplicamos la regla de la adición:</p>
+                        <div class="bg-white p-3 rounded-lg my-2">
+                            \begin{align}
+                            P(C \cup V) &= P(C) + P(V) - P(C \cap V) \\
+                            &= 0{,}40 + 0{,}30 - 0{,}10 \\
+                            &= 0{,}60 = 60\%
+                            \end{align}
+                        </div>
+                        <p class="text-gray-700">La probabilidad es <strong>0,60 o 60%</strong>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Ejercicio P 4 - Bayes -->
+        <section class="mb-8">
+            <div class="card bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="exercise-card bg-gradient-to-r from-yellow-50 to-white p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Ejercicio 7: Teorema de Bayes</h3>
+                        <span class="badge badge-probability">Probabilidad</span>
+                    </div>
+                    <div class="text-gray-700 space-y-4">
+                        <p>Un sistema detecta fraude con estas características:</p>
+                        <ul class="ml-6 list-disc space-y-1">
+                            <li>3% de los estados financieros tienen fraude: P(F) = 0,03</li>
+                            <li>Si hay fraude, lo detecta en 85% de los casos: P(D|F) = 0,85</li>
+                            <li>Si NO hay fraude, da falsa alarma en 10% de los casos: P(D|F<sup>c</sup>) = 0,10</li>
+                        </ul>
+                        <p class="font-semibold">Pregunta: Si el sistema da alerta, ¿cuál es la probabilidad de fraude real? P(F|D)</p>
+                        <p class="text-sm text-gray-600">(Redondee a 2 decimales)</p>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex gap-3 items-center mb-4">
+                        <input type="number" step="0.01" id="answer-p4" placeholder="Tu respuesta" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#FF6600]">
+                        <button onclick="checkAnswer('p4', 0.21)" class="px-6 py-3 bg-[#FF6600] hover:bg-[#E55A00] text-white font-semibold rounded-lg transition">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="feedback-p4"></div>
+                    
+                    <button onclick="toggleSolution('sol-p4')" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition">
+                        Ver Solución Completa
+                    </button>
+                    <div id="sol-p4" class="solution-hidden mt-4 p-4 bg-yellow-50 rounded-lg">
+                        <p class="font-semibold text-gray-800 mb-2">Solución:</p>
+                        <p class="text-gray-700 mb-2">Aplicamos el Teorema de Bayes:</p>
+                        <div class="bg-white p-3 rounded-lg my-2 text-sm">
+                            \begin{align}
+                            P(F|D) &= \frac{P(D|F) \cdot P(F)}{P(D|F) \cdot P(F) + P(D|F^c) \cdot P(F^c)} \\[8pt]
+                            &= \frac{0{,}85 \times 0{,}03}{0{,}85 \times 0{,}03 + 0{,}10 \times 0{,}97} \\[8pt]
+                            &= \frac{0{,}0255}{0{,}0255 + 0{,}097} \\[8pt]
+                            &= \frac{0{,}0255}{0{,}1225} \approx 0{,}208 \approx 0{,}21
+                            \end{align}
+                        </div>
+                        <p class="text-gray-700">La probabilidad de fraude real es aproximadamente <strong>0,21 o 21%</strong>.</p>
+                        <p class="text-gray-600 text-sm mt-2">Nota: Aunque el sistema dio alerta, la probabilidad real de fraude es relativamente baja debido a la baja prevalencia inicial (3%) y la tasa de falsas alarmas (10%).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+    
+    <!-- Footer -->
+    <footer class="gradient-bg text-white py-8 px-4 mt-12 no-print">
+        <div class="max-w-6xl mx-auto text-center">
+            <p class="text-lg font-semibold mb-2">Ejercicios Interactivos</p>
+            <p class="text-orange-100">Material didáctico - Carrera de Contador Auditor</p>
+            <p class="text-blue-200 text-sm mt-4">Universidad Tecnológica Metropolitana - © 2026</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Statistics
+        let stats = {
+            correct: 0,
+            total: 0
+        };
+        
+        // Load stats from localStorage
+        function loadStats() {
+            const saved = localStorage.getItem('ejercicios-stats');
+            if (saved) {
+                stats = JSON.parse(saved);
+                updateStatsDisplay();
+            }
+        }
+        
+        // Save stats to localStorage
+        function saveStats() {
+            localStorage.setItem('ejercicios-stats', JSON.stringify(stats));
+        }
+        
+        // Update stats display
+        function updateStatsDisplay() {
+            document.getElementById('correctCount').textContent = stats.correct;
+            document.getElementById('totalAttempts').textContent = stats.total;
+            const percentage = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+            document.getElementById('percentageCorrect').textContent = percentage + '%';
+            
+            // Update progress bar
+            document.getElementById('progressBar').style.width = percentage + '%';
+        }
+        
+        // Reset stats
+        function resetStats() {
+            if (confirm('¿Estás seguro de que quieres reiniciar las estadísticas?')) {
+                stats = { correct: 0, total: 0 };
+                saveStats();
+                updateStatsDisplay();
+            }
+        }
+        
+        // Check answer
+        function checkAnswer(exerciseId, correctAnswer) {
+            const input = document.getElementById('answer-' + exerciseId);
+            const feedback = document.getElementById('feedback-' + exerciseId);
+            const userAnswer = parseFloat(input.value.replace(',', '.'));
+            
+            if (isNaN(userAnswer)) {
+                feedback.innerHTML = '<div class="feedback-info p-4 rounded-lg mt-4"><p class="font-semibold text-blue-800">⚠️ Por favor ingresa un número válido</p></div>';
+                return;
+            }
+            
+            stats.total++;
+            
+            const tolerance = 0.02; // 2% tolerance
+            const isCorrect = Math.abs(userAnswer - correctAnswer) <= tolerance;
+            
+            if (isCorrect) {
+                stats.correct++;
+                feedback.innerHTML = '<div class="feedback-correct p-4 rounded-lg mt-4"><p class="font-semibold text-green-800">✓ ¡Correcto! Excelente trabajo.</p></div>';
+            } else {
+                feedback.innerHTML = '<div class="feedback-incorrect p-4 rounded-lg mt-4"><p class="font-semibold text-red-800">✗ Incorrecto. La respuesta correcta es: ' + correctAnswer.toFixed(2) + '</p><p class="text-gray-700 mt-2">Revisa la solución completa para entender el procedimiento.</p></div>';
+            }
+            
+            saveStats();
+            updateStatsDisplay();
+            
+            // Scroll to feedback
+            feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Toggle solution
+        function toggleSolution(solId) {
+            const solution = document.getElementById(solId);
+            if (solution.classList.contains('solution-hidden')) {
+                solution.classList.remove('solution-hidden');
+                solution.classList.add('solution-visible');
+                // Re-render MathJax
+                if (window.MathJax) {
+                    MathJax.typesetPromise([solution]);
+                }
+            } else {
+                solution.classList.remove('solution-visible');
+                solution.classList.add('solution-hidden');
+            }
+        }
+        
+        // Smooth scrolling for navigation
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = Math.min(scrolled, stats.total > 0 ? (stats.correct / stats.total) * 100 : 0) + '%';
+        });
+        
+        // Load stats on page load
+        loadStats();
+        
+        // MathJax configuration
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+</body>
+</html>
